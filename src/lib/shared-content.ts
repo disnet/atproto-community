@@ -201,11 +201,16 @@ export async function fetchSharedContent(
         // Build the URL for the post
         let href = '';
         if (doc.path && doc.site) {
-          // Try to resolve the publication URL
-          const pubDoc = await fetchRecord(doc.site);
-          const baseUrl = (pubDoc as unknown as { url?: string })?.url;
-          if (baseUrl) {
-            href = `${baseUrl.replace(/\/$/, '')}${doc.path}`;
+          if (doc.site.startsWith('https://') || doc.site.startsWith('http://')) {
+            // site is already a URL — use it directly as the base
+            href = `${doc.site.replace(/\/$/, '')}${doc.path}`;
+          } else {
+            // site is an AT-URI — try to resolve the publication URL
+            const pubDoc = await fetchRecord(doc.site);
+            const baseUrl = (pubDoc as unknown as { url?: string })?.url;
+            if (baseUrl) {
+              href = `${baseUrl.replace(/\/$/, '')}${doc.path}`;
+            }
           }
         }
         if (!href && doc.path) {

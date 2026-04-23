@@ -158,6 +158,25 @@ async function fetchSharedFromAccount(handleOrDid: string): Promise<RawSharedCon
 }
 
 /**
+ * Build a post URL from a base URL and a document path,
+ * avoiding path duplication when the base URL already contains
+ * a subpath that overlaps with the start of the document path.
+ * e.g. baseUrl="https://rpg.actor/news" + path="/news/slug" → "https://rpg.actor/news/slug"
+ */
+function buildPostUrl(baseUrl: string, docPath: string): string {
+  const url = new URL(baseUrl);
+  const basePath = url.pathname.replace(/\/$/, '');
+
+  // If the doc path starts with the base URL's path, don't double it
+  if (basePath && basePath !== '/' && docPath.startsWith(basePath)) {
+    url.pathname = docPath;
+  } else {
+    url.pathname = `${basePath}${docPath}`;
+  }
+  return url.toString().replace(/\/$/, '');
+}
+
+/**
  * Fetch shared content from multiple accounts, resolve documents and authors.
  * Returns posts sorted by sharedAt descending.
  */
@@ -210,13 +229,13 @@ export async function fetchSharedContent(
         if (doc.path && doc.site) {
           if (doc.site.startsWith('https://') || doc.site.startsWith('http://')) {
             // site is already a URL — use it directly as the base
-            href = `${doc.site.replace(/\/$/, '')}${doc.path}`;
+            href = buildPostUrl(doc.site, doc.path);
           } else {
             // site is an AT-URI — try to resolve the publication URL
             const pubDoc = await fetchRecord(doc.site);
             const baseUrl = (pubDoc as unknown as { url?: string })?.url;
             if (baseUrl) {
-              href = `${baseUrl.replace(/\/$/, '')}${doc.path}`;
+              href = buildPostUrl(baseUrl, doc.path);
             }
           }
         }

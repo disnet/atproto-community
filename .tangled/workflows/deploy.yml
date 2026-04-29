@@ -1,0 +1,31 @@
+when:
+  - event: ["push"]
+    branch: ["main"]
+
+engine: "nixery"
+
+dependencies:
+  nixpkgs:
+    - nodejs
+    - curl
+
+steps:
+  - name: install dependencies
+    command: npm ci
+
+  - name: build site
+    command: npm run build
+
+  - name: deploy site
+    command: |
+      if [ -z "$DOKPLOY_WEBHOOK_URL" ]; then
+        echo "DOKPLOY_WEBHOOK_URL secret is not set."
+        exit 1
+      fi
+
+     curl --fail-with-body --show-error --silent \
+       --request POST \
+       --header "Content-Type: application/json" \
+       --header "X-Tangled-Event: push" \
+       --data "{\"ref\":\"${TANGLED_REF}\",\"after\":\"${TANGLED_SHA}\",\"repository\":{\"full_name\":\"${TANGLED_REPO_NAME}\"}}" \
+"$DOKPLOY_WEBHOOK_URL"

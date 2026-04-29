@@ -23,8 +23,6 @@ steps:
         exit 1
       fi
 
-      echo "test from kat"
-
       curl --fail-with-body --show-error --silent \
       --request POST \
       --header "Content-Type: application/json" \

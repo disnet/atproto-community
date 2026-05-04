@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig } from "astro/config";
+import authproto from "@fujocoded/authproto";
 
 import node from "@astrojs/node";
 
@@ -14,4 +15,24 @@ export default defineConfig({
   adapter: node({
     mode: "standalone",
   }),
+  session: {
+    driver: { entrypoint: "unstorage/drivers/memory" },
+  },
+  security: {
+    allowedDomains: [{ hostname: "atmosphere.community", protocol: "https" }],
+  },
+  integrations: [
+    authproto({
+      applicationName: "Atmosphere.community",
+      applicationDomain: "https://atmosphere.community",
+      scopes: {
+        additionalScopes: [
+          "repo:community.lexicon.calendar.rsvp?action=create&action=update",
+        ],
+      },
+      driver: {
+        name: "memory",
+      },
+    }),
+  ],
 });

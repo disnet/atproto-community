@@ -7,10 +7,16 @@ import Hero from "../components/layout/Hero.astro";
 import PostCard from "../components/content/PostCard.astro";
 import EventCard from "../components/events/EventCard.astro";
 import CommunityCard from "../components/communities/CommunityCard.astro";
+import WorkingGroupCard from "../components/working-groups/WorkingGroupCard.astro";
 import GetInvolved from "../components/layout/GetInvolved.astro";
 import { getLiveCollection } from "astro:content";
 const communitiesResult = await getLiveCollection("communities");
 const communities = (communitiesResult.entries ?? []).map(
+  (entry) => entry.data,
+);
+
+const workingGroupsResult = await getLiveCollection("workingGroups");
+const workingGroups = (workingGroupsResult.entries ?? []).map(
   (entry) => entry.data,
 );
 
@@ -57,6 +63,18 @@ const events = (eventsResult.entries ?? [])
             </p>
           )
         }
+      </div>
+    </div>
+  </section>
+
+  <!-- Working Groups -->
+  <section class="section" aria-labelledby="working-groups-heading">
+    <div class="container">
+      <div class="section-header">
+        <h2 id="working-groups-heading" class="section__title">Working Groups</h2>
+      </div>
+      <div class="wg-grid">
+        {workingGroups.map((group) => <WorkingGroupCard {...group} />)}
       </div>
     </div>
   </section>
@@ -117,6 +135,18 @@ const events = (eventsResult.entries ?? [])
     display: flex;
     flex-direction: column;
     gap: var(--space-md);
+  }
+
+  .wg-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-base);
+  }
+
+  @media (min-width: 640px) {
+    .wg-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
 
   .community-row {

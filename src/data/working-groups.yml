@@ -1,0 +1,40 @@
+- slug: private-data
+  name: Private Data
+  remit: Private user data and access control patterns on atproto.
+  memberCount: 0
+  sources:
+    - kind: discourse-rss
+      url: https://discourse.atprotocol.community/c/wg/privatedatawg/16.rss
+    - kind: semble-collection
+      handle: bmann.ca
+      rkey: 3meei47mfkb2d
+
+- slug: composable-moderation
+  name: Composable Moderation
+  remit: Designing labelers and moderation primitives that compose across applications.
+  memberCount: 0
+  sources: []
+
+- slug: e2ee
+  name: E2EE
+  remit: End-to-end encryption design for atproto messaging and content.
+  memberCount: 0
+  sources: []
+
+- slug: community-standards
+  name: Community Standards
+  remit: Norms, codes of conduct, and shared community infrastructure.
+  memberCount: 0
+  sources: []
+
+- slug: lexicons
+  name: Lexicons
+  remit: Coordinating new and shared lexicons across the ecosystem.
+  memberCount: 0
+  sources: []
+
+- slug: science
+  name: Science
+  remit: Open science workflows on atproto.
+  memberCount: 0
+  sources: []

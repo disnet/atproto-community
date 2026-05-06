@@ -1,7 +1,7 @@
 // @ts-check
 import { defineConfig } from "astro/config";
 
-import node from "@astrojs/node";
+import vercel from "@astrojs/vercel";
 import authproto from "@fujocoded/authproto";
 
 // https://astro.build/config
@@ -12,9 +12,7 @@ export default defineConfig({
   server: {
     host: true,
   },
-  adapter: node({
-    mode: "standalone",
-  }),
+  adapter: vercel(),
   session: {
     driver: { entrypoint: "unstorage/drivers/memory" },
   },

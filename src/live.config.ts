@@ -14,6 +14,11 @@ import {
   transformEventGroup,
   type LoaderArgs,
 } from "./lib/live-handlers";
+import {
+  fetchAllSources,
+  getWorkingGroup,
+  getWorkingGroups,
+} from "./lib/working-groups/index.js";
 
 interface CommunityDefinition {
   name: string;
@@ -235,4 +240,90 @@ const communities = defineLiveCollection({
   }),
 });
 
-export const collections = { feed, events, communities };
+// Curated working-group metadata — fed from YAML, no network calls. The feed for
+// each group is a separate collection (workingGroupFeed below) so the homepage
+// card grid stays fast and individual feed failures don't blank the listing.
+const workingGroups = defineLiveCollection({
+  loader: {
+    name: "working-groups-live",
+    async loadCollection() {
+      return {
+        entries: getWorkingGroups().map((group) => ({
+          id: group.slug,
+          data: group,
+        })),
+      };
+    },
+    async loadEntry({ filter }: { filter: { id: string } }) {
+      const group = getWorkingGroup(filter.id);
+      if (!group) return undefined;
+      return { id: group.slug, data: group };
+    },
+  },
+  schema: z.object({
+    slug: z.string(),
+    name: z.string(),
+    remit: z.string(),
+    memberCount: z.number(),
+    sources: z.array(
+      z.union([
+        z.object({ kind: z.literal("discourse-rss"), url: z.string() }),
+        z.object({
+          kind: z.literal("semble-collection"),
+          handle: z.string(),
+          rkey: z.string(),
+        }),
+      ]),
+    ),
+  }),
+});
+
+const feedItemSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  url: z.string(),
+  excerpt: z.string().optional(),
+  publishedAt: z.coerce.date(),
+  source: z.object({
+    kind: z.enum(["discourse-rss", "semble-collection"]),
+    label: z.string(),
+    url: z.string().optional(),
+  }),
+  author: z
+    .object({
+      handle: z.string().optional(),
+      displayName: z.string().optional(),
+    })
+    .optional(),
+});
+
+// Heterogeneous-source feed for a single group. NOT defineAtProtoLiveCollection
+// — sources span Discourse RSS + atproto + (later) other things, so we fan out
+// manually. Source-level resilience via Promise.allSettled inside fetchAllSources.
+const workingGroupFeed = defineLiveCollection({
+  loader: {
+    name: "working-group-feed-live",
+    async loadCollection() {
+      // No useful "all groups merged" view; per-group page calls loadEntry.
+      return { entries: [] };
+    },
+    async loadEntry({ filter }: { filter: { slug: string } }) {
+      const group = getWorkingGroup(filter.slug);
+      if (!group) return undefined;
+      const items = await fetchAllSources(group);
+      return { id: group.slug, data: { slug: group.slug, items } };
+    },
+  },
+  schema: z.object({
+    slug: z.string(),
+    items: z.array(feedItemSchema),
+  }),
+});
+
+export const collections = {
+  feed,
+  events,
+  communities,
+  workingGroups,
+  workingGroupFeed,
+};

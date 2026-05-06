@@ -1,0 +1,115 @@
+---
+interface Props {
+  title: string;
+  url: string;
+  excerpt?: string;
+  publishedAt: Date;
+  source: {
+    kind: "discourse-rss" | "semble-collection";
+    label: string;
+    url?: string;
+  };
+  author?: {
+    handle?: string;
+    displayName?: string;
+  };
+}
+
+const { title, url, excerpt, publishedAt, source, author } = Astro.props;
+const authorLabel =
+  author?.displayName || (author?.handle ? `@${author.handle}` : undefined);
+---
+
+<article class="wg-feed-item">
+  <a
+    href={url}
+    class="wg-feed-item__link"
+    rel="noopener noreferrer"
+    target="_blank"
+  >
+    <h3 class="wg-feed-item__title">{title}</h3>
+    {excerpt && <p class="wg-feed-item__excerpt">{excerpt}</p>}
+    <div class="wg-feed-item__meta">
+      <span class="wg-feed-item__source">{source.label}</span>
+      {authorLabel && <span class="wg-feed-item__author">{authorLabel}</span>}
+      <time class="wg-feed-item__date" datetime={publishedAt.toISOString()}>
+        {
+          publishedAt.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })
+        }
+      </time>
+    </div>
+  </a>
+</article>
+
+<style>
+  .wg-feed-item {
+    background: var(--color-surface-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    transition: border-color 0.15s ease;
+  }
+  .wg-feed-item:hover {
+    border-color: var(--blue-300);
+  }
+
+  .wg-feed-item__link {
+    display: block;
+    padding: var(--space-base);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .wg-feed-item__title {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: var(--text-base);
+    color: var(--neutral-900);
+    line-height: var(--leading-tight);
+  }
+
+  .wg-feed-item__excerpt {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    margin-top: var(--space-xs);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: var(--leading-normal);
+  }
+
+  .wg-feed-item__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-top: var(--space-sm);
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+  }
+
+  .wg-feed-item__source {
+    background: var(--blue-50);
+    color: var(--blue-700);
+    border-radius: var(--radius-pill);
+    padding: 2px var(--space-sm);
+    font-weight: 600;
+  }
+
+  .wg-feed-item__author {
+    font-weight: 500;
+    color: var(--color-text-secondary);
+  }
+
+  .wg-feed-item__date {
+    color: var(--neutral-400);
+  }
+  .wg-feed-item__date::before {
+    content: "·";
+    margin-right: var(--space-sm);
+  }
+</style>

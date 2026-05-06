@@ -1,0 +1,88 @@
+---
+interface Props {
+  slug: string;
+  name: string;
+  remit: string;
+  memberCount: number;
+}
+
+const { slug, name, remit, memberCount } = Astro.props;
+const memberLabel = memberCount === 1 ? "1 member" : `${memberCount} members`;
+const showMembers = memberCount > 0;
+---
+
+<a href={`/working-groups/${slug}`} class="wg-card" aria-label={`${name} working group`}>
+  <div class="wg-card__head">
+    <h3 class="wg-card__name">{name}</h3>
+    {showMembers && <span class="wg-card__members">{memberLabel}</span>}
+  </div>
+  <p class="wg-card__remit">{remit}</p>
+  <span class="wg-card__cta" aria-hidden="true">View feed →</span>
+</a>
+
+<style>
+  .wg-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    background: var(--color-surface-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-base);
+    color: inherit;
+    text-decoration: none;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+
+  .wg-card:hover {
+    border-color: var(--color-primary);
+    transform: translateY(-1px);
+  }
+
+  .wg-card:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  .wg-card__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-sm);
+  }
+
+  .wg-card__name {
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-weight: 700;
+    color: var(--neutral-900);
+    line-height: var(--leading-tight);
+  }
+
+  .wg-card__members {
+    flex-shrink: 0;
+    font-size: var(--text-xs);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    background: var(--neutral-100);
+    border-radius: var(--radius-pill);
+    padding: 2px var(--space-sm);
+  }
+
+  .wg-card__remit {
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    line-height: var(--leading-normal);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .wg-card__cta {
+    margin-top: auto;
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--color-link);
+  }
+</style>

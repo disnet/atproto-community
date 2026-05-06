@@ -1,0 +1,137 @@
+---
+export const prerender = false;
+
+import Base from "../../layouts/Base.astro";
+import Header from "../../components/layout/Header.astro";
+import Footer from "../../components/layout/Footer.astro";
+import FeedItem from "../../components/working-groups/FeedItem.astro";
+import { getLiveEntry } from "astro:content";
+
+const slug = Astro.params.slug;
+if (!slug) return Astro.redirect("/", 302);
+
+const groupResult = await getLiveEntry("workingGroups", slug);
+const group = groupResult.entry?.data;
+
+if (!group) {
+  return new Response("Working group not found", { status: 404 });
+}
+
+const feedResult = await getLiveEntry("workingGroupFeed", { slug });
+const items = feedResult.entry?.data.items ?? [];
+
+const memberLabel =
+  group.memberCount === 1 ? "1 member" : `${group.memberCount} members`;
+const showMembers = group.memberCount > 0;
+
+const sourceLabels = group.sources.map((source) => {
+  if (source.kind === "discourse-rss") return "Discourse";
+  return "Semble";
+});
+const uniqueSourceLabels = [...new Set(sourceLabels)];
+---
+
+<Base
+  title={`${group.name} Working Group`}
+  description={group.remit}
+>
+  <Header slot="header" />
+
+  <section class="wg-page section">
+    <div class="container">
+      <p class="wg-page__back"><a href="/#working-groups-heading">← All working groups</a></p>
+      <div class="wg-page__head">
+        <h1 class="wg-page__title">{group.name}</h1>
+        {showMembers && <span class="wg-page__members">{memberLabel}</span>}
+      </div>
+      <p class="wg-page__remit">{group.remit}</p>
+      {uniqueSourceLabels.length > 0 && (
+        <p class="wg-page__sources">
+          Aggregated from {uniqueSourceLabels.join(" and ")}.
+        </p>
+      )}
+
+      {items.length > 0 ? (
+        <div class="wg-feed">
+          {items.map((item) => <FeedItem {...item} />)}
+        </div>
+      ) : (
+        <div class="wg-empty">
+          <p>
+            No threads yet. {group.sources.length === 0
+              ? "Sources for this group haven't been configured."
+              : "Check back soon — sources are being aggregated."}
+          </p>
+        </div>
+      )}
+    </div>
+  </section>
+
+  <Footer slot="footer" />
+</Base>
+
+<style>
+  .wg-page__back {
+    font-size: var(--text-sm);
+    margin-bottom: var(--space-base);
+  }
+  .wg-page__back a {
+    color: var(--color-text-secondary);
+    text-decoration: none;
+  }
+  .wg-page__back a:hover {
+    color: var(--color-link);
+  }
+
+  .wg-page__head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-base);
+    flex-wrap: wrap;
+  }
+
+  .wg-page__title {
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    font-weight: 700;
+  }
+
+  .wg-page__members {
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    background: var(--neutral-100);
+    border-radius: var(--radius-pill);
+    padding: 2px var(--space-md);
+  }
+
+  .wg-page__remit {
+    color: var(--color-text-secondary);
+    font-size: var(--text-base);
+    line-height: var(--leading-relaxed);
+    max-width: 60ch;
+    margin-top: var(--space-sm);
+  }
+
+  .wg-page__sources {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    margin-top: var(--space-sm);
+  }
+
+  .wg-feed {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    margin-top: var(--space-xl);
+  }
+
+  .wg-empty {
+    margin-top: var(--space-xl);
+    padding: var(--space-2xl);
+    text-align: center;
+    color: var(--color-text-secondary);
+    background: var(--neutral-100);
+    border-radius: var(--radius-md);
+  }
+</style>

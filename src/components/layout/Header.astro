@@ -10,6 +10,9 @@ const navLinks = [
 ];
 
 const currentPath = Astro.url.pathname;
+const authErrorCode = Astro.locals.authproto?.errorCode;
+const authErrorDescription = Astro.locals.authproto?.errorDescription;
+const authError = authErrorDescription ?? authErrorCode;
 
 const isActive = (href: string) =>
   currentPath === href || (href !== '/' && currentPath.startsWith(href));
@@ -43,15 +46,66 @@ const isActive = (href: string) =>
 
     <AuthMenu />
   </nav>
+  {
+    authError && (
+      <div class="auth-alert-wrap">
+        <div class="auth-alert container" role="alert">
+          <strong>Sign-in failed</strong>
+          <span>{authError}</span>
+          {authErrorCode && authErrorCode !== authError && (
+            <code>{authErrorCode}</code>
+          )}
+        </div>
+      </div>
+    )
+  }
 </header>
 
 <style>
   .site-header {
     position: sticky;
     top: 0;
-    z-index: 10;
-    background: var(--color-surface-card);
-    border-bottom: 1px solid var(--color-border);
+    z-index: var(--z-header);
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--header-border);
+  }
+
+  .auth-alert-wrap {
+    border-top: 1px solid var(--error);
+    background: color-mix(in oklch, var(--error) 10%, var(--background));
+  }
+
+  .site-header:has(.auth-menu[open]) .auth-alert-wrap {
+    display: none;
+  }
+
+  .auth-alert {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding-block: var(--space-sm);
+    color: var(--foreground);
+    font-size: var(--text-sm);
+    line-height: var(--leading-normal);
+  }
+
+  .auth-alert strong {
+    flex: 0 0 auto;
+    color: var(--error);
+  }
+
+  .auth-alert span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .auth-alert code {
+    flex: 0 0 auto;
+    border: 1px solid color-mix(in oklch, var(--error) 35%, transparent);
+    border-radius: var(--radius-sm);
+    padding: 1px var(--space-xs);
+    color: var(--error);
+    font-size: var(--text-xs);
   }
 
   .site-nav {
@@ -66,7 +120,7 @@ const isActive = (href: string) =>
     align-items: center;
     gap: var(--space-sm);
     text-decoration: none;
-    color: var(--color-primary);
+    color: var(--header-link);
   }
 
   .logo-cloud {
@@ -74,7 +128,7 @@ const isActive = (href: string) =>
     width: 22px;
     height: 12px;
     position: relative;
-    background: var(--blue-200);
+    background: var(--header-link-hover-bg);
     border-radius: 12px;
   }
   .logo-cloud::before {
@@ -83,7 +137,7 @@ const isActive = (href: string) =>
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: var(--blue-200);
+    background: var(--header-link-hover-bg);
     top: -5px;
     left: 4px;
   }
@@ -93,7 +147,7 @@ const isActive = (href: string) =>
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: var(--blue-200);
+    background: var(--header-link-hover-bg);
     top: -3px;
     left: 12px;
   }
@@ -104,7 +158,7 @@ const isActive = (href: string) =>
     font-size: var(--text-base);
   }
   .logo-at {
-    color: var(--blue-400);
+    color: var(--header-link-inactive);
   }
 
   .nav-links {
@@ -117,15 +171,15 @@ const isActive = (href: string) =>
   .nav-link {
     font-size: var(--text-sm);
     font-weight: 500;
-    color: var(--color-text-muted);
+    color: var(--header-fg-muted);
     text-decoration: none;
     padding-block: var(--space-xs);
   }
   .nav-link:hover {
-    color: var(--color-text);
+    color: var(--header-fg);
   }
   .nav-link--active {
-    color: var(--color-primary);
+    color: var(--header-link);
   }
 
   /* Mobile hamburger */
@@ -140,7 +194,7 @@ const isActive = (href: string) =>
     display: block;
     width: 20px;
     height: 2px;
-    background: var(--color-text);
+    background: var(--header-fg);
     position: relative;
   }
   .hamburger::before,
@@ -149,7 +203,7 @@ const isActive = (href: string) =>
     position: absolute;
     width: 20px;
     height: 2px;
-    background: var(--color-text);
+    background: var(--header-fg);
     left: 0;
   }
   .hamburger::before { top: -6px; }
@@ -158,6 +212,12 @@ const isActive = (href: string) =>
   @media (max-width: 640px) {
     .site-nav {
       gap: var(--space-sm);
+    }
+
+    .auth-alert {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 2px;
     }
 
     .nav-toggle-label {
@@ -171,8 +231,8 @@ const isActive = (href: string) =>
       left: 0;
       right: 0;
       flex-direction: column;
-      background: var(--color-surface-card);
-      border-bottom: 1px solid var(--color-border);
+      background: var(--header-bg);
+      border-bottom: 1px solid var(--header-border);
       padding: var(--space-base) var(--space-lg);
       gap: var(--space-base);
       display: none;
